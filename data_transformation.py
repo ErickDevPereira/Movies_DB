@@ -1,73 +1,63 @@
-from typing import Dict, Any, Optional
+from movie_abstraction import Movie
 import pandas as pd
+from typing import List, Dict, Any, Tuple
+import API_conn as api
+import utils
 
-class Movie:
+#First returned value is an object from the class Movie, second is the runtime of the function download_data and the last value is the a status of the operation.
+def read_and_load(title: str) -> Tuple[Movie, str, str]:
 
-    class Identity:
+    def treat(msg: str) -> None | str:
+        if msg == 'N/A': #Happens when the API can't give value for an attribute
+            return None
+        return msg
 
-        def __init__(self, imdbID: str, title: str, genre: str, website: Optional[str | None] = None):
-            self.imdbID: str = imdbID
-            self.title: str = title
-            self.genre: str = genre
-            self.website: str | None = website
-        
-    class People:
+    data, status, time = api.download_data(title)
+    api_runtime: str = f'{time:.2f} sec'
+    if data is not None:
+        if not isinstance(data, str):
+            #This case will be accomplished if data is the correct dictionary from the JSON file.
+            imdbID: str | None = treat(data['imdbID'])
+            title_: str | None = treat(data['Title'])
+            genre: str | None = treat(data['Genre'])
+            director: str | None = treat(data['Director'])
+            actors: str | None = treat(data['Actors'])
+            writer: str | None = treat(data['Writer'])
+            imdbVotes: int | None = utils.transform_number(treat(data['imdbVotes'])) if treat(data['imdbVotes']) is not None else None
+            imdbRating: float | None = float(treat(data['imdbRating'])) if treat(data['imdbRating']) is not None else None
+            year: int | None = int(treat(data['Year'])) if treat(data['Year']) is not None else None
+            runtime: int | None = treat(data['Runtime']) if treat(data['Runtime']) is None else utils.transform_time(treat(data['Runtime']))
+            release_date: str | None = treat(data['Released']) if treat(data['Released']) is None else utils.transform_date(treat(data['Released']))
+            description: str | None = treat(data['Plot'])
+            metascore: int | None = int(treat(data['Metascore'])) if treat(data['Metascore']) is not None else None
+            language: str | None = treat(data['Language'])
+            country: str | None = treat(data['Country'])
+            awards: str | None = treat(data['Awards'])
+            website: str | None = treat(data['Website'])
+            movie_obj: Movie = Movie(
+                imdbID = imdbID,
+                title = title_,
+                genre = genre,
+                director = director,
+                actors = actors,
+                writer = writer,
+                imdbVotes = imdbVotes,
+                imdbRating = imdbRating,
+                year = year,
+                runtime = runtime,
+                release_date = release_date,
+                description = description,
+                metascore = metascore,
+                language = language,
+                country = country,
+                awards = awards,
+                website = website)
+            return movie_obj, api_runtime, 'Ok'
+        else:
+            return Movie(), api_runtime, data
+    else:
+        return Movie(), api_runtime, 'ERROR'
 
-        def __init__(self, director: str, actors: str, writer: str):
-            self.director: str = director
-            self.actors: str = actors
-            self.writer: str = writer
-
-    class Details:
-
-        def __init__(self,
-                    imdbVotes: int,
-                    imdbRating: int,
-                    year: int,
-                    runtime: str,
-                    release_date: str,
-                    description: str,
-                    metascore: int,
-                    language: str,
-                    country: str,
-                    awards: str):
-            self.imdbVotes: int = imdbVotes
-            self.imdbRating: int = imdbRating
-            self.year: int = year
-            self.runtime: str = runtime
-            self.release_date: str = release_date
-            self.description: str = description
-            self.metascore: int = metascore
-            self.language: str = language
-            self.countru: str = country
-            self.awards: str = awards
-    
-    def __init__(self,
-                imdbID: str,
-                title: str,
-                genre: str,
-                director: str,
-                actors: str,
-                writer: str,
-                imdbVotes: int,
-                imdbRating: int,
-                year: int,
-                runtime: str,
-                release_date: str,
-                description: str,
-                metascore: int,
-                language: str,
-                country: str,
-                awards: str,
-                website: Optional[str | None] = None):
-        self.my_movie: Dict[str, Any] = {'Id': self.Identity(imdbID, title, genre, website),
-                                        'People': self.People(director, actors, writer),
-                                        'Details': self.Details(imdbVotes,
-                                                                imdbRating, year,
-                                                                runtime, release_date,
-                                                                description, metascore,
-                                                                language, country,
-                                                                awards)}
-    
-    def __str__(self):
-        return  f"This object concerns the movie:\n'{self.my_movie['Id'].title}' directed by {self.my_movie['People'].director}"
+if __name__ == '__main__':
+    obj, api_runtime, status = read_and_load('Chainsaw Massacre')
+    print(obj)
