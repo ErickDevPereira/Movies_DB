@@ -21,9 +21,9 @@ class Movie:
 
         def __init__(self,
                     imdbVotes: int | None,
-                    imdbRating: int | None,
+                    imdbRating: float | None,
                     year: int | None,
-                    runtime: str | None,
+                    runtime: int | None,
                     release_date: str | None,
                     description: str | None,
                     metascore: int | None,
