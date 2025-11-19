@@ -3,105 +3,104 @@ import src_files.args as ag
 
 class Widgets:
 
-    def pos(self, posx, posy):
-        self.place(relx = posx, rely = posy, anchor = 'center')
+    class Entry:
 
-class Entry(Widgets):
+        def __init__(self,
+                    screen,
+                    placeholder_text,
+                    width,
+                    height,
+                    posx,
+                    posy,
+                    /, *,
+                    show = '',
+                    border_color = ag.pattern_style['main_color'],
+                    fg_color = ag.pattern_style['background_color'],
+                    fontstyle = ag.pattern_style['font_style'],
+                    fontsize = 15,
+                    mode = 'center'):
+            self.entry = ctk.CTkEntry(screen,
+                                        placeholder_text = placeholder_text,
+                                        fg_color = fg_color,
+                                        border_color = border_color,
+                                        font = (fontstyle, fontsize),
+                                        width = width,
+                                        height = height,
+                                        show = show)
+            self.entry.place(relx = posx, rely = posy, anchor = mode)
+        
+        def get_delete(self):
+            value = self.entry.get()
+            self.entry.delete(0, ctk.END)
+            return value
+        
+        def get(self):
+            return self.entry.get()
 
-    def __init__(self,
-                screen,
-                placeholder_text,
-                width,
-                height,
-                posx,
-                posy,
-                /, *,
-                show = '',
-                border_color = ag.pattern_style['main_color'],
-                fg_color = ag.pattern_style['background_color'],
-                fontstyle = ag.pattern_style['font_style'],
-                fontsize = 15,
-                mode = 'center'):
-        self.entry = ctk.CTkEntry(screen,
-                                    placeholder_text = placeholder_text,
-                                    fg_color = fg_color,
-                                    border_color = border_color,
-                                    font = (fontstyle, fontsize),
-                                    width = width,
-                                    height = height,
-                                    show = show)
-        self.entry.place(relx = posx, rely = posy, anchor = mode)
-    
-    def get_delete(self):
-        value = self.entry.get()
-        self.entry.delete(0, ctk.END)
-        return value
-    
-    def get(self):
-        return self.entry.get()
+    class Button:
 
-class Button(Widgets):
+        def __init__(self,
+                    screen,
+                    text,
+                    posx,
+                    posy,
+                    /,
+                    associated_func,
+                    *,
+                    width = ag.pattern_style['button_width'],
+                    height = ag.pattern_style['button_height'],
+                    color = ag.pattern_style['main_color'],
+                    hover_color = ag.pattern_style['hover_color'],
+                    border_color = ag.pattern_style['border_color'],
+                    text_color = 'black',
+                    font = (ag.pattern_style['font_style'], ag.pattern_style['text_size_for_button']),
+                    border_width = 5,
+                    img = None,
+                    hover = True,
+                    roundness = 10,
+                    mode = 'center'
+                    ):
+            self.button = ctk.CTkButton(screen,
+                                        text = text,
+                                        height = height,
+                                        width = width,
+                                        fg_color = color,
+                                        border_color = border_color,
+                                        border_width = border_width,
+                                        hover_color = hover_color,
+                                        text_color = text_color,
+                                        font = font,
+                                        command = associated_func,
+                                        image = img,
+                                        hover = hover,
+                                        corner_radius = roundness)
+            self.button.place(relx = posx, rely = posy, anchor = mode)
+        
+        def pos(self, posx, posy):
+            self.button.place(relx = posx, rely = posy, anchor = 'center')
 
-    def __init__(self,
-                screen,
-                text,
-                posx,
-                posy,
-                /, associated_func, *,
-                width = ag.pattern_style['button_width'],
-                height = ag.pattern_style['button_height'],
-                color = ag.pattern_style['main_color'],
-                hover_color = ag.pattern_style['hover_color'],
-                border_color = ag.pattern_style['border_color'],
-                text_color = 'black',
-                font = (ag.pattern_style['font_style'], ag.pattern_style['text_size_for_button']),
-                border_width = 5,
-                img = None,
-                hover = True,
-                roundness = 10,
-                mode = 'center'
-                ):
-        self.button = ctk.CTkButton(screen,
-                                    text = text,
-                                    height = height,
-                                    width = width,
-                                    fg_color = color,
-                                    border_color = border_color,
-                                    border_width = border_width,
-                                    hover_color = hover_color,
-                                    text_color = text_color,
-                                    font = font,
-                                    command = associated_func,
-                                    image = img,
-                                    hover = hover,
-                                    corner_radius = roundness)
-        self.button.place(relx = posx, rely = posy, anchor = mode)
-    
-    def pos(self, posx, posy):
-        self.button.place(relx = posx, rely = posy, anchor = 'center')
+    class Label:
 
-class Label(Widgets):
+        def __init__(self,
+                    screen,
+                    text,
+                    posx,
+                    posy,
+                    size,
+                    /, *,
+                    font = ag.pattern_style['font_style'],
+                    color = ag.pattern_style['main_color'],
+                    mode = 'center'
+                    ):
+            self.mode = mode
+            self.label = ctk.CTkLabel(screen,
+                                        text = text,
+                                        font = (font, size),
+                                        text_color = color)
+            self.label.place(relx = posx, rely = posy, anchor = self.mode)
 
-    def __init__(self,
-                screen,
-                text,
-                posx,
-                posy,
-                size,
-                /, *,
-                font = ag.pattern_style['font_style'],
-                color = ag.pattern_style['main_color'],
-                mode = 'center'
-                ):
-        self.mode = mode
-        self.label = ctk.CTkLabel(screen,
-                                       text = text,
-                                       font = (font, size),
-                                       text_color = color)
-        self.label.place(relx = posx, rely = posy, anchor = self.mode)
-
-    def pos(self, posx, posy):
-        self.label.place(relx = posx, rely = posy, anchor = self.mode)
+        def pos(self, posx, posy):
+            self.label.place(relx = posx, rely = posy, anchor = self.mode)
 
 class Window:
 
@@ -112,6 +111,7 @@ class Window:
         self.root.iconbitmap(icon_path)
         self.root.title(title)
         self.root.resizable(False, False)
+        self.widget = self.Widgets() #Used to access the widgets
     
     def open_window(self):
         self.root.mainloop()
@@ -134,13 +134,13 @@ class Error_screen(Window):
                 width = 600,
                 height = 200):
         super().__init__(width, height, icon_path, title)
-        self.error_label = Label(self.root,
+        self.error_label = self.widget.Label(self.root,
                                 error_text,
                                 posx_label,
                                 posy_label,
                                 error_size,
                                 color = '#ff3300')
-        self.button = Button(self.root,
+        self.button = self.widget.Button(self.root,
                             'OK',
                             posx_button,
                             posy_button,
@@ -165,13 +165,13 @@ class Success_screen(Window):
                 width = 600,
                 height = 200):
         super().__init__(width, height, icon_path, title)
-        self.error_label = Label(self.root,
+        self.error_label = self.widget.Label(self.root,
                                 suc_text,
                                 posx_label,
                                 posy_label,
                                 suc_size,
                                 color = '#66ff66')
-        self.button = Button(self.root,
+        self.button = self.widget.Button(self.root,
                             'OK',
                             posx_button,
                             posy_button,
@@ -180,6 +180,7 @@ class Success_screen(Window):
                             height = 50,
                             color = '#66ff66',
                             hover_color = '#00cc00')
+#refactorated until this place.
 
 class Login_Register(Window):
 
