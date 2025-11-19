@@ -59,5 +59,19 @@ def transform_time(garbage_time: str) -> int:
     num = int(pieces[0])
     return num
 
+def valid_email(email: str) -> bool:
+
+    if not isinstance(email, str):
+        raise TypeError('valid_email() must have a string at email argument')
+    
+    if '@' in email and '.com' in email:
+        if email[-4:] == '.com':
+            pieces: List[str] = email.split('@')
+            if len(pieces[0]) > 0:
+                subpieces: List[str] = pieces[1].split('.com')
+                if len(subpieces[0]) > 0:
+                    return True
+    return False 
+
 if __name__ == '__main__':
-    print(transform_time('12 min'))
+    print(valid_email('erick1204200100@gmail.com'))

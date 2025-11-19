@@ -39,6 +39,15 @@ def create_everything(username: str, password: str) -> Any:
                 CONSTRAINT unique_username UNIQUE (username)
             )""")
     cursor.close()
+    cursor = db_.cursor()
+    cursor.execute("SHOW INDEXES FROM Users")
+    lst = cursor.fetchall()
+    cursor.close()
+    ind_names = [record[2] for record in lst]
+    if 'id_search_user' not in ind_names:
+        cursor: Any = db_.cursor()
+        cursor.execute("CREATE INDEX id_search_user ON Users (username, password)")
+        cursor.close()
     cursor: Any = db_.cursor()
     cursor.execute(
             """
@@ -88,5 +97,4 @@ def drop_everything(db):
     cursor.close()
 
 if __name__ == '__main__':
-    drop_everything(define_conn('root', 'Ichigo007*'))
-    create_everything('root', 'Ichigo007*')
+    print(create_everything('root', 'Ichigo007*'))
