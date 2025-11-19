@@ -1,15 +1,23 @@
-from typing import Any, List, Tuple
+from typing import Any
+
+def load_user(db: Any, username: str, first_name: str, last_name: str, email: str, password: str):
+
+    cursor: Any = db.cursor()
+    cursor.execute("INSERT INTO Users VALUES (%s, %s, %s, %s, %s)",
+                   (username, first_name, last_name, email, password))
+    cursor.commit()
+    cursor.close()
 
 def load_id(db: Any, imdbID: str, title: str, genre: str, website: str) -> None:
 
-    cursor = db.cursor()
+    cursor: Any = db.cursor()
     cursor.execute("INSERT INTO Identity VALUES (%s, %s, %s, %s)", (imdbID, title, genre, website))
     cursor.commit()
     cursor.close()
 
 def load_people(db: Any, imdbID: str, director: str, actor: str, writer: str) -> None:
 
-    cursor = db.cursor()
+    cursor: Any = db.cursor()
     cursor.execute("INSERT INTO People VALUES (%s, %s, %s, %s)", (imdbID, director, actor, writer))
     cursor.commit()
     cursor.close()
@@ -28,7 +36,7 @@ def load_details(db: Any,
                 awards: str,
                 website: str) -> None:
     
-    cursor = db.cursor()
+    cursor: Any = db.cursor()
     cursor.execute("INSERT INTO Details VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                    (imdbID, imdbvotes, imdbRating, year, runtime, release_date, description, metascore, language, country, awards, website))
     cursor.commit()

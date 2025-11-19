@@ -27,13 +27,28 @@ def create_everything(username: str, password: str) -> Any:
     db.close()
     db_: Any = define_conn(username, password)
     cursor: Any = db_.cursor()
+    cursor.execute("""
+            CREATE TABLE if not exists Users (
+                user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) NOT NULL,
+                first_name VARCHAR(255) NOT NULL,
+                last_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                CHECK ( email LIKE '_%@_%.com' ),
+                CONSTRAINT unique_username UNIQUE (username)
+            )""")
+    cursor.close()
+    cursor: Any = db_.cursor()
     cursor.execute(
             """
             CREATE TABLE if not exists Identity (
+                user_id INT UNSIGNED NOT NULL,
                 imdbID VARCHAR(255) PRIMARY KEY,
                 Title VARCHAR(255),
                 Genre VARCHAR(255),
-                Website VARCHAR(255)
+                Website VARCHAR(255),
+                FOREIGN KEY (user_id) REFERENCES Users (user_id)
             )""")
     cursor.close()
     cursor: Any = db_.cursor()
@@ -74,3 +89,4 @@ def drop_everything(db):
 
 if __name__ == '__main__':
     drop_everything(define_conn('root', 'Ichigo007*'))
+    create_everything('root', 'Ichigo007*')
