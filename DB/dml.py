@@ -8,36 +8,36 @@ def load_user(db: Any, username: str, first_name: str, last_name: str, email: st
     db.commit()
     cursor.close()
 
-def load_id(db: Any, user_ID, imdbID: str, title: str, genre: str, website: str) -> None:
+def load_id(db: Any, user_ID: int, imdbID: str, title: str, genre: str, website: str) -> None:
 
     cursor: Any = db.cursor()
-    cursor.execute("INSERT INTO Identity VALUES (%s, %s, %s, %s, %s)", (user_ID, imdbID, title, genre, website))
+    cursor.execute("INSERT INTO Identity VALUES (%s, %s, %s, %s, %s, %s)", (user_ID, imdbID, str(imdbID) + str(user_ID), title, genre, website))
     db.commit()
     cursor.close()
 
-def load_people(db: Any, imdbID: str, director: str, actor: str, writer: str) -> None:
+def load_people(db: Any, user_ID: int, imdbID: str, director: str, actor: str, writer: str) -> None:
 
     cursor: Any = db.cursor()
-    cursor.execute("INSERT INTO People VALUES (%s, %s, %s, %s)", (imdbID, director, actor, writer))
+    cursor.execute("INSERT INTO People VALUES (%s, %s, %s, %s, %s)", (user_ID, str(imdbID) + str(user_ID), director, actor, writer))
     db.commit()
     cursor.close()
 
 def load_details(db: Any,
+                user_ID: int,
                 imdbID: str,
                 imdbvotes: int,
                 imdbRating: float,
-                year: int,
+                year: str,
                 runtime: int,
                 release_date: str,
                 description: str,
                 metascore: int,
                 language: str,
                 country: str,
-                awards: str,
-                website: str) -> None:
+                awards: str) -> None:
     
     cursor: Any = db.cursor()
     cursor.execute("INSERT INTO Details VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                   (imdbID, imdbvotes, imdbRating, year, runtime, release_date, description, metascore, language, country, awards, website))
+                   (user_ID, str(imdbID) + str(user_ID), imdbvotes, imdbRating, year, runtime, release_date, description, metascore, language, country, awards))
     db.commit()
     cursor.close()

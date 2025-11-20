@@ -25,7 +25,7 @@ def read_and_load(title: str) -> Tuple[Movie, str, str]:
             writer: str | None = treat(data['Writer'])
             imdbVotes: int | None = utils.transform_number(treat(data['imdbVotes'])) if treat(data['imdbVotes']) is not None else None
             imdbRating: float | None = float(treat(data['imdbRating'])) if treat(data['imdbRating']) is not None else None
-            year: int | None = int(treat(data['Year'])) if treat(data['Year']) is not None else None
+            year: str | None = treat(data['Year'])
             runtime: int | None = treat(data['Runtime']) if treat(data['Runtime']) is None else utils.transform_time(treat(data['Runtime']))
             release_date: str | None = treat(data['Released']) if treat(data['Released']) is None else utils.transform_date(treat(data['Released']))
             description: str | None = treat(data['Plot'])
@@ -33,7 +33,10 @@ def read_and_load(title: str) -> Tuple[Movie, str, str]:
             language: str | None = treat(data['Language'])
             country: str | None = treat(data['Country'])
             awards: str | None = treat(data['Awards'])
-            website: str | None = treat(data['Website'])
+            try:
+                website: str | None = treat(data['Website'])
+            except:
+                website: str | None = None
             movie_obj: Movie = Movie(
                 imdbID = imdbID,
                 title = title_,

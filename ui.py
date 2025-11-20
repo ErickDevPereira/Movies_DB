@@ -5,6 +5,7 @@ import DB.ddl as ddl
 import DB.dml as dml
 import utils
 import DB.dql as dql
+import data_transformation as DT
 
 class Widgets:
 
@@ -64,7 +65,8 @@ class Widgets:
                     img = None,
                     hover = True,
                     roundness = 10,
-                    mode = 'center'
+                    mode = 'center',
+                    bg_color = 'transparent'
                     ):
             self.button = ctk.CTkButton(screen,
                                         text = text,
@@ -79,7 +81,8 @@ class Widgets:
                                         command = associated_func,
                                         image = img,
                                         hover = hover,
-                                        corner_radius = roundness)
+                                        corner_radius = roundness,
+                                        bg_color = bg_color)
             self.button.place(relx = posx, rely = posy, anchor = mode)
         
         def pos(self, posx, posy):
@@ -458,7 +461,8 @@ class Login_Register(Window):
         else:
             if dql.search_user(self.conn, username, password):
                 self.root.destroy()
-                self.main_screen = Main_Screen()
+                self.user_id = dql.get_user_id(self.conn, username, password)
+                self.main_screen = Main_Screen(self.conn, user_id = self.user_id)
                 self.main_screen.open_window()
             else:
                 self.error_label.label.configure(text = 'Wrong password or username!')
@@ -487,15 +491,51 @@ class Login_Register(Window):
 
 class Main_Screen(Window):
 
-    def __init__(self, width = 1200, height = 700, icon_path = None, title = 'Main Screen'):
+    def __init__(self, db, user_id,  width = 1200, height = 700, icon_path = None, title = 'Main Screen'):
         super().__init__(width, height, icon_path, title)
+        self.conn = db
+        self.user_id = user_id #Id of the user that logged in.
         self.menu_frame = ctk.CTkFrame(self.root, width = 1300, height = 120)
         self.menu_frame.place(relx = -0.02, rely = 0.0, anchor = 'nw')
         self.menu_msg = self.widget.Label(self.menu_frame, 'WELCOME TO THE MOVIE-DB APP', 0.5, 0.2, 25)
         self.search = self.widget.Button(self.menu_frame, 'SEARCH', 0.4, 0.65, self.search_movie)
         self.analyze = self.widget.Button(self.menu_frame, 'ANALYZE', 0.6, 0.65, self.analyze_DB)
+        self.search_image = ctk.CTkImage(light_image = Image.open('images/lupa.png'))
+        self.add_image = ctk.CTkImage(light_image = Image.open('images/add.png'))
         self.main_frame = ctk.CTkFrame(self.root, width = 1110, height = 540)
         self.main_frame.place(relx = 0.04, rely = 0.2, anchor = 'nw')
+        self.load_stats_frame()
+
+    def load_search_frame(self):
+        self.search_frame = ctk.CTkFrame(self.main_frame, width = 600, height = 100)
+        self.search_frame.place(relx = 0.04, rely = 0.04)
+        self.search_msg = self.widget.Label(self.search_frame, 'Search a movie by title to see information about the movie', 0.05, 0.05, 15, mode = 'nw')
+        self.search = self.widget.Entry(self.search_frame, 'Search by title', 500, 50, 0.05, 0.35, mode = 'nw')
+        self.search_button = self.widget.Button(self.search_frame,
+                                    '',
+                                    0.9,
+                                    0.6,
+                                    self.call,
+                                    width = 45,
+                                    height = 50,
+                                    img = self.search_image,
+                                    border_width = 0)
+
+    def load_stats_frame(self):
+        self.add_frame = ctk.CTkFrame(self.main_frame, width = 600, height = 110)
+        self.add_frame.place(relx = 0.04, rely = 0.04)
+        self.add_msg = self.widget.Label(self.add_frame, 'Search a movie by title and click at the add button', 0.05, 0.05, 15, mode = 'nw')
+        self.add_entry = self.widget.Entry(self.add_frame, 'Add by title', 500, 50, 0.05, 0.35, mode = 'nw')
+        self.add_button = self.widget.Button(self.add_frame,
+                                    '',
+                                    0.9,
+                                    0.57,
+                                    self.add_movie,
+                                    width = 45,
+                                    height = 50,
+                                    img = self.add_image,
+                                    border_width = 0)
+        self.not_found_msg = self.widget.Label(self.add_frame, "", 0.4, 0.93, 12, color = 'red')
 
     def recreate_frame(self):
         self.main_frame.destroy()
@@ -504,10 +544,49 @@ class Main_Screen(Window):
 
     def search_movie(self):
         self.recreate_frame()
+        self.load_search_frame()
 
     def analyze_DB(self):
         self.recreate_frame()
+        self.load_stats_frame()
+    
+    def call(self):
+        pass
+
+    def add_movie(self):
+        movie, api_runtime, status =  DT.read_and_load(title = self.add_entry.get())
+        print([status])
+        if status == 'Ok':
+            dml.load_id(self.conn,
+                            user_ID = self.user_id,
+                            imdbID = movie.my_movie['Id'].imdbID,
+                            title = movie.my_movie['Id'].title,
+                            genre = movie.my_movie['Id'].genre,
+                            website = movie.my_movie['Id'].website)
+            dml.load_details(self.conn,
+                                user_ID = self.user_id,
+                                imdbID = movie.my_movie['Id'].imdbID,
+                                imdbvotes = movie.my_movie['Details'].imdbVotes,
+                                imdbRating = movie.my_movie['Details'].imdbRating,
+                                runtime = movie.my_movie['Details'].runtime,
+                                release_date = movie.my_movie['Details'].release_date,
+                                description = movie.my_movie['Details'].description,
+                                metascore = movie.my_movie['Details'].metascore,
+                                language = movie.my_movie['Details'].language,
+                                country = movie.my_movie['Details'].country,
+                                awards = movie.my_movie['Details'].awards,
+                                year = movie.my_movie['Details'].year)
+            dml.load_people(self.conn,
+                                user_ID = self.user_id,
+                                imdbID = movie.my_movie['Id'].imdbID,
+                                director = movie.my_movie['People'].director,
+                                actor = movie.my_movie['People'].actors,
+                                writer = movie.my_movie['People'].writer)
+        elif status == 'Not found':
+            self.not_found_msg.label.configure(text = 'Movie Not Found. Try again!')
+        else:
+            self.not_found_msg.label.configure(text = 'ERROR: Something bad happened. Try again later!')
 
 if __name__ == '__main__':
-    suc = Main_Screen()
+    suc = Main_Screen(3)
     suc.open_window()

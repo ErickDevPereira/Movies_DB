@@ -22,7 +22,7 @@ class Movie:
         def __init__(self,
                     imdbVotes: int | None,
                     imdbRating: float | None,
-                    year: int | None,
+                    year: str | None,
                     runtime: int | None,
                     release_date: str | None,
                     description: str | None,
@@ -32,7 +32,7 @@ class Movie:
                     awards: str | None):
             self.imdbVotes: int | None = imdbVotes
             self.imdbRating: float | None = imdbRating
-            self.year: int | None = year
+            self.year: str | None = year
             self.runtime: int | None = runtime
             self.release_date: str | None = release_date
             self.description: str | None = description
@@ -50,7 +50,7 @@ class Movie:
                 writer: str | None = None,
                 imdbVotes: int | None = None,
                 imdbRating: float | None = None,
-                year: int | None = None,
+                year: str | None = None,
                 runtime: int | None = None,
                 release_date: str | None = None,
                 description: str | None = None,

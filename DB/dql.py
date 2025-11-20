@@ -1,4 +1,5 @@
 from typing import Tuple, List, Dict, Any
+
 '''
 def fetch_user(db):
 
@@ -18,6 +19,15 @@ def search_user(db, username, pw):
     if len(searched_data) > 0:
         return True
     return False
+
+def get_user_id(db: Any, username: str, pw: str) -> int | str:
+
+    cursor: Any = db.cursor()
+    cursor.execute("SELECT user_id FROM users WHERE username = %s AND password = %s", (username, pw))
+    id = cursor.fetchall()
+    if len(id) > 0:
+        return int(id[0][0]) #Returning the id
+    return 'User not found'
 
 if __name__ == '__main__':
     pass

@@ -53,30 +53,36 @@ def create_everything(username: str, password: str) -> Any:
             """
             CREATE TABLE if not exists Identity (
                 user_id INT UNSIGNED NOT NULL,
-                imdbID VARCHAR(255) PRIMARY KEY,
+                imdbID VARCHAR(255),
+                imdb_user VARCHAR(255) PRIMARY KEY,
                 Title VARCHAR(255),
                 Genre VARCHAR(255),
                 Website VARCHAR(255),
-                FOREIGN KEY (user_id) REFERENCES Users (user_id)
+                FOREIGN KEY (user_id) REFERENCES Users (user_id),
+                UNIQUE (user_id, imdbID)
             )""")
     cursor.close()
     cursor: Any = db_.cursor()
     cursor.execute("""
             CREATE TABLE if not exists People (
-                imdbID VARCHAR(255),
+                user_id INT UNSIGNED NOT NULL,
+                imdb_user VARCHAR(255) NOT NULL,
                 Director VARCHAR(255),
                 Actors VARCHAR(255),
                 Writer VARCHAR(255),
-            CONSTRAINT fk_id_to_people FOREIGN KEY (imdbID) REFERENCES Identity (imdbID)
+                CONSTRAINT fk_imdbuser_to_people FOREIGN KEY (imdb_user) REFERENCES Identity (imdb_user),
+                FOREIGN KEY (user_id) REFERENCES Users (user_id),
+                UNIQUE (imdb_user)
             )""")
     cursor.close()
     cursor: Any = db_.cursor()
     cursor.execute("""
             CREATE TABLE if not exists Details (
-                imdbID VARCHAR(255),
+                user_id INT UNSIGNED NOT NULL,
+                imdb_user VARCHAR(255) NOT NULL,
                 imdbVotes INT,
                 imdbRating DECIMAL(5, 2),
-                Year INT,
+                Year VARCHAR(255),
                 Runtime INT,
                 Release_date DATE,
                 Description VARCHAR(255),
@@ -84,8 +90,9 @@ def create_everything(username: str, password: str) -> Any:
                 Language VARCHAR(255),
                 Country VARCHAR(255),
                 Awards VARCHAR(255),
-                Website VARCHAR(255),
-            CONSTRAINT fk_id_to_details FOREIGN KEY (imdbID) REFERENCES Identity (imdbID)
+                CONSTRAINT fk_imdbuser_to_details FOREIGN KEY (imdb_user) REFERENCES Identity (imdb_user),
+                FOREIGN KEY (user_id) REFERENCES Users (user_id),
+                UNIQUE (imdb_user)
             )""")
     cursor.close()
     
