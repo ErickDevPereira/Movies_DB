@@ -444,6 +444,9 @@ class Login_Register(Window):
                         except Exception as e:
                             print(e)
                             self.regerror_label.label.configure(text = str(e))
+                        else:
+                            self.suc = Success_screen(None, 'Success Screen', 'User added with success', 20)
+                            self.suc.open_window()
                     else:
                         self.regerror_label.label.configure(text = 'ERROR: Email must have the format ___@___.com')
         
@@ -454,7 +457,9 @@ class Login_Register(Window):
             self.error_label.label.configure(text = 'ERROR: You must fill all entries')
         else:
             if dql.search_user(self.conn, username, password):
-                print('OK')
+                self.root.destroy()
+                self.main_screen = Main_Screen()
+                self.main_screen.open_window()
             else:
                 self.error_label.label.configure(text = 'Wrong password or username!')
             '''self.users_data = dql.fetch_user(self.conn)
@@ -480,6 +485,29 @@ class Login_Register(Window):
             self.reg_pw_entry.entry.configure(show = '*')
             self.reg_cpw_entry.entry.configure(show = '*')
 
+class Main_Screen(Window):
+
+    def __init__(self, width = 1200, height = 700, icon_path = None, title = 'Main Screen'):
+        super().__init__(width, height, icon_path, title)
+        self.menu_frame = ctk.CTkFrame(self.root, width = 1300, height = 120)
+        self.menu_frame.place(relx = -0.02, rely = 0.0, anchor = 'nw')
+        self.menu_msg = self.widget.Label(self.menu_frame, 'WELCOME TO THE MOVIE-DB APP', 0.5, 0.2, 25)
+        self.search = self.widget.Button(self.menu_frame, 'SEARCH', 0.4, 0.65, self.search_movie)
+        self.analyze = self.widget.Button(self.menu_frame, 'ANALYZE', 0.6, 0.65, self.analyze_DB)
+        self.main_frame = ctk.CTkFrame(self.root, width = 1110, height = 540)
+        self.main_frame.place(relx = 0.04, rely = 0.2, anchor = 'nw')
+
+    def recreate_frame(self):
+        self.main_frame.destroy()
+        self.main_frame = ctk.CTkFrame(self.root, width = 1110, height = 540)
+        self.main_frame.place(relx = 0.04, rely = 0.2, anchor = 'nw')
+
+    def search_movie(self):
+        self.recreate_frame()
+
+    def analyze_DB(self):
+        self.recreate_frame()
+
 if __name__ == '__main__':
-    lr = Login_Register(ddl.define_conn('root', 'Ichigo007*'))
-    lr.open_window()
+    suc = Main_Screen()
+    suc.open_window()
