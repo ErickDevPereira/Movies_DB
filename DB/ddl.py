@@ -1,5 +1,5 @@
 import mysql.connector
-from typing import Any
+from typing import Any, List
 
 def define_conn(username: str, password: str) -> Any:
     
@@ -39,11 +39,11 @@ def create_everything(username: str, password: str) -> Any:
                 CONSTRAINT unique_username UNIQUE (username)
             )""")
     cursor.close()
-    cursor = db_.cursor()
+    cursor: Any = db_.cursor()
     cursor.execute("SHOW INDEXES FROM Users")
     lst = cursor.fetchall()
     cursor.close()
-    ind_names = [record[2] for record in lst]
+    ind_names: List[str] = [record[2] for record in lst]
     if 'id_search_user' not in ind_names:
         cursor: Any = db_.cursor()
         cursor.execute("CREATE INDEX id_search_user ON Users (username, password)")
@@ -98,8 +98,8 @@ def create_everything(username: str, password: str) -> Any:
     
     return db_
 
-def drop_everything(db):
-    cursor = db.cursor()
+def drop_everything(db: Any) -> None:
+    cursor: Any = db.cursor()
     cursor.execute("DROP DATABASE moviesDB")
     cursor.close()
 

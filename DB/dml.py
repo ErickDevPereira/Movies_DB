@@ -1,6 +1,6 @@
 from typing import Any
 
-def load_user(db: Any, username: str, first_name: str, last_name: str, email: str, password: str):
+def load_user(db: Any, username: str, first_name: str, last_name: str, email: str, password: str) -> None:
 
     cursor: Any = db.cursor()
     cursor.execute("INSERT INTO Users (username, first_name, last_name, email, password) VALUES (%s, %s, %s, %s, %s)",

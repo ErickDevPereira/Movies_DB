@@ -1,7 +1,9 @@
-window_size = {
+from typing import Dict, Tuple
+
+window_size: Dict[str, Tuple[int, int]] = {
     'Login': (600, 600)
                }
-pattern_style = {
+pattern_style: Dict[str, str | int] = {
     'font_style' : 'cascadia code semibold',
     'main_color' : '#FF8C00',
     'hover_color' : '#FF4500',
