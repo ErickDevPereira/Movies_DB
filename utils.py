@@ -73,5 +73,14 @@ def valid_email(email: str) -> bool:
                     return True
     return False 
 
+def to_float(data: str) -> float:
+
+    if not isinstance(data, str):
+        raise TypeError("The input value for to_float() must be a string")
+    
+    num = float(''.join(data.split(',')))
+
+    return num
+
 if __name__ == '__main__':
-    print(valid_email('erick1204200100@gmail.com'))
+    print(to_float('123,231,123.01'))

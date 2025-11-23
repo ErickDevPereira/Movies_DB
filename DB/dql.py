@@ -12,6 +12,15 @@ def fetch_user(db):
     cursor.close()
     return organized_data'''
 
+def to_float(data: str) -> float:
+
+    if not isinstance(data, str):
+        raise TypeError("The input value for to_float() must be a string")
+    
+    num = float(''.join(data.split(',')))
+
+    return num
+
 def search_user(db: Any, username: str, pw: str) -> bool:
 
     cursor: Any = db.cursor()
@@ -171,5 +180,75 @@ def get_rating_data_over_avg_by_user(db: Any, user_id: int) -> Dict[str, Any]:
     }
     return organized_data
 
+def get_genre_data_by_user(db: Any, user_id: int) -> Dict[str, Any]:
+
+    cursor: Any = db.cursor()
+    cursor.execute("""
+                SELECT
+                    i.genre AS genre,
+                    COUNT(*) AS quantity,
+                    FORMAT(AVG(d.runtime), 2) AS average_runtime,
+                    FORMAT(AVG(d.imdbRating), 2) AS average_imdb_rating,
+                    FORMAT(AVG(d.imdbVotes), 2) AS average_imdb_votes
+                FROM
+                    identity AS i INNER JOIN details AS d
+                    ON i.imdb_user = d.imdb_user INNER JOIN
+                    people AS p ON p.imdb_user = i.imdb_user
+                WHERE
+                    i.user_id = %s
+                GROUP BY
+                    genre
+                ORDER BY
+                    AVG(d.imdbRating) DESC
+                """, (user_id,))
+    messy_data: Any = cursor.fetchall()
+    organized_data: Dict[str, Any] = {
+        'genre' : [record[0] for record in messy_data],
+        'quantity' : [record[1] for record in messy_data],
+        'average runtime' : [to_float(record[2]) for record in messy_data],
+        'average rating' : [to_float(record[3]) for record in messy_data],
+        'average votes' : [to_float(record[4]) for record in messy_data]
+    }
+    return organized_data
+
+def get_year_data_by_user(db: Any, user_id: int, order_by: str = 'year') -> Dict[str, Any]:
+
+    complement: None | str = None
+    if order_by == 'year':
+        complement = 'ORDER BY release_year DESC'
+    elif order_by == 'average_runtime':
+        complement = 'ORDER BY AVG(d.runtime) DESC'
+    elif order_by == 'average_rating':
+        complement = 'ORDER BY AVG(d.imdbRating) DESC'
+    else:
+        complement = ''
+
+    cursor: Any = db.cursor()
+    cursor.execute("""
+                SELECT
+                    YEAR(d.Release_date) AS release_year,
+                    COUNT(*) AS quantity,
+                    FORMAT(AVG(d.imdbRating), 2) AS average_rating,
+                    FORMAT(AVG(d.runtime), 2) AS average_runtime,
+                    FORMAT(AVG(d.imdbVotes), 2) AS average_votes
+                FROM
+                    identity AS i INNER JOIN details AS d
+                    ON i.imdb_user = d.imdb_user INNER JOIN
+                    people AS p ON i.imdb_user = p.imdb_user
+                WHERE
+                    i.user_id = %s
+                GROUP BY
+                    release_year
+                """ + complement, (user_id,))
+    messy_data: Any = cursor.fetchall()
+    organized_data: Dict[str, Any] = {
+        'year' : [record[0] for record in messy_data],
+        'quantity' : [record[1] for record in messy_data],
+        'avg_rating' : [to_float(record[2]) for record in messy_data],
+        'avg_runtime' : [to_float(record[3]) for record in messy_data],
+        'avg_votes' : [to_float(record[4]) for record in messy_data]
+    }
+    return organized_data
+
 if __name__ == '__main__':
-    pprint.pprint(get_rating_data_over_avg_by_user(ddl.define_conn("root", "Ichigo007*"), 1))
+    pprint.pprint(get_genre_data_by_user(ddl.define_conn("root", "Ichigo007*"), 1))
