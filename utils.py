@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict
 
 def transform_number(strNum: str) -> int:
 
@@ -71,16 +71,21 @@ def valid_email(email: str) -> bool:
                 subpieces: List[str] = pieces[1].split('.com')
                 if len(subpieces[0]) > 0:
                     return True
-    return False 
+    return False
 
-def to_float(data: str) -> float:
+def transform_data_structure(ugly_dict: Dict[str, List[Any]]) -> List[Dict[str, Any]]:
 
-    if not isinstance(data, str):
-        raise TypeError("The input value for to_float() must be a string")
+    keys_lst = list()
+    for key in ugly_dict.keys():
+        keys_lst.append(key)
+    DATA = list()
+    num_of_records = len(ugly_dict[keys_lst[0]])
+    for ind_row in range(num_of_records):
+        my_row = dict()
+        for key in keys_lst:
+            my_row.update({key : ugly_dict[key][ind_row]})
+        DATA.append(my_row)
+    return DATA
     
-    num = float(''.join(data.split(',')))
-
-    return num
-
 if __name__ == '__main__':
-    print(to_float('123,231,123.01'))
+    print(transform_data_structure({'A': [1, 2, 3], 'B' : [0, 1, 2], 'C': ['A', 'B', 'C']}))

@@ -1,6 +1,5 @@
 from typing import Tuple, List, Dict, Any
 import pprint
-import ddl
 '''
 def fetch_user(db):
 
@@ -39,14 +38,30 @@ def get_user_id(db: Any, username: str, pw: str) -> int | str:
         return int(id[0][0]) #Returning the id
     return 'User not found'
 
-def get_everything_by_user(db: Any, user_id: int) -> Dict[str, List[Any]]:
+def get_user_data(db: Any, userID: int) -> Dict[str, str]:
 
     cursor: Any = db.cursor()
-    cursor.execute("""
+    cursor.execute("SELECT username, email, CONCAT(first_name, ' ', last_name) FROM users WHERE user_id = %s", (userID,))
+    data: Any = cursor.fetchall()
+    organized_data: Dict[str, str] = {
+        'Nickname' : data[0][0],
+        'full name': data[0][1],
+        'email' : data[0][2]
+    }
+    return organized_data
+
+def get_everything_by_user(db: Any, user_id: int, show = False) -> Dict[str, List[Any]]:
+
+    complement: str = ''
+    if show:
+        complement = """"u.user_id AS id,
+                         u.username AS nickname,
+                         CONCAT(u.username, ' ', u.last_name) AS full_name,"""
+
+    cursor: Any = db.cursor()
+    cursor.execute(f"""
                 SELECT
-                    u.user_id AS id,
-                    u.username AS nickname,
-                    CONCAT(u.username, ' ', u.last_name) AS full_name,
+                    {complement}
                     i.imdbID AS imdbID,
                     i.title AS title,
                     i.genre AS genre,
@@ -72,25 +87,43 @@ def get_everything_by_user(db: Any, user_id: int) -> Dict[str, List[Any]]:
                     u.user_id = %s
                 """, (user_id,))
     messy_data: List[Tuple[Any,...]] = cursor.fetchall()
-    organized_data = {'user Id' : [record[0] for record in messy_data],
-                      'Nickname' : [record[1] for record in messy_data],
-                      'full name' : [record[2] for record in messy_data],
-                      'imdb ID' : [record[3] for record in messy_data],
-                      'Title' : [record[4] for record in messy_data],
-                      'Genre' : [record[5] for record in messy_data],
-                      'description' : [record[12] for record in messy_data],
-                      'runtime': [record[17] for record in messy_data],
-                      'director' : [record[7] for record in messy_data],
-                      'actors' : [record[8] for record in messy_data],
-                      'writer' : [record[9] for record in messy_data],
-                      'release date' : [str(record[11]) for record in messy_data],
-                      'imdb rating': [float(record[18]) for record in messy_data],
-                      'metascore' : [record[13] for record in messy_data],
-                      'language' : [record[14] for record in messy_data],
-                      'country' : [record[15] for record in messy_data],
-                      'awards' : [record[16] for record in messy_data],
-                      'imdb votes' : [record[10] for record in messy_data],
-                      'Website' : [record[6] for record in messy_data]}
+    if show:
+        organized_data = {'user Id' : [record[0] for record in messy_data],
+                        'Nickname' : [record[1] for record in messy_data],
+                        'full name' : [record[2] for record in messy_data],
+                        'imdb ID' : [record[3] for record in messy_data],
+                        'Title' : [record[4] for record in messy_data],
+                        'Genre' : [record[5] for record in messy_data],
+                        'description' : [record[12] for record in messy_data],
+                        'runtime': [record[17] for record in messy_data],
+                        'director' : [record[7] for record in messy_data],
+                        'actors' : [record[8] for record in messy_data],
+                        'writer' : [record[9] for record in messy_data],
+                        'release date' : [str(record[11]) for record in messy_data],
+                        'imdb rating': [float(record[18]) for record in messy_data],
+                        'metascore' : [record[13] for record in messy_data],
+                        'language' : [record[14] for record in messy_data],
+                        'country' : [record[15] for record in messy_data],
+                        'awards' : [record[16] for record in messy_data],
+                        'imdb votes' : [record[10] for record in messy_data],
+                        'Website' : [record[6] for record in messy_data]}
+    else:
+        organized_data = {'imdb ID' : [record[0] for record in messy_data],
+                        'Title' : [record[1] for record in messy_data],
+                        'Genre' : [record[2] for record in messy_data],
+                        'description' : [record[9] for record in messy_data],
+                        'runtime': [record[14] for record in messy_data],
+                        'director' : [record[4] for record in messy_data],
+                        'actors' : [record[5] for record in messy_data],
+                        'writer' : [record[6] for record in messy_data],
+                        'release date' : [str(record[8]) for record in messy_data],
+                        'imdb rating': [float(record[15]) for record in messy_data],
+                        'metascore' : [record[10] for record in messy_data],
+                        'language' : [record[11] for record in messy_data],
+                        'country' : [record[12] for record in messy_data],
+                        'awards' : [record[13] for record in messy_data],
+                        'imdb votes' : [record[7] for record in messy_data],
+                        'Website' : [record[3] for record in messy_data]}
     return organized_data
 
 def get_rating_stats_over_avg_by_user(db: Any, user_id: int) -> Dict[str, List[Any]]:
@@ -250,5 +283,85 @@ def get_year_data_by_user(db: Any, user_id: int, order_by: str = 'year') -> Dict
     }
     return organized_data
 
+def get_country_data_by_user(db: Any, user_id: int, order_by: str = 'quantity') -> Dict[str, Any]:
+
+    complement: None | str = None
+    if order_by == 'quantity':
+        complement = 'ORDER BY quantity DESC'
+    elif order_by == 'average_runtime':
+        complement = 'ORDER BY AVG(d.runtime) DESC'
+    elif order_by == 'average_rating':
+        complement = 'ORDER BY AVG(d.imdbRating) DESC'
+    else:
+        complement = ''
+
+    cursor: Any = db.cursor()
+    cursor.execute("""
+                SELECT
+                    d.country AS country,
+                    COUNT(*) AS quantity,
+                    FORMAT(AVG(d.runtime), 2) AS avg_runtime,
+                    FORMAT(AVG(d.imdbRating), 2) AS avg_rating,
+                    FORMAT(AVG(d.imdbVotes), 2) AS avg_votes
+                FROM
+                    Identity AS i INNER JOIN Details AS d
+                    ON i.imdb_user = d.imdb_user INNER JOIN
+                    People as p ON p.imdb_user = i.imdb_user
+                WHERE
+                    i.user_id = %s
+                GROUP BY
+                    country
+                """ + complement, (user_id,))
+    messy_data: Any = cursor.fetchall()
+    organized_data: Dict[str, Any] = {
+        'country' : [record[0] for record in messy_data],
+        'quantity' : [record[1] for record in messy_data],
+        'avg_runtime' : [to_float(record[2]) for record in messy_data],
+        'avg_rating' : [to_float(record[3]) for record in messy_data],
+        'avg_votes' : [to_float(record[4]) for record in messy_data]
+    }
+    return organized_data
+
+def get_all_averages(db: Any, user_id: int | None = None) -> Dict[str, int | float | str]:
+
+    sql = """   SELECT
+                    u.user_id AS user_id,
+                    u.username AS nickname,
+                    u.email AS email,
+                    COUNT(*) AS quantity,
+                    FORMAT(AVG(d.Runtime), 2) AS avg_runtime,
+                    FORMAT(AVG(d.imdbRating), 2) AS avg_rating,
+                    FORMAT(AVG(d.imdbVotes), 2) AS avg_votes,
+                    COUNT(DISTINCT i.genre) AS quanitity_of_genres,
+                    COUNT(i.website) AS quantity_of_websites,
+                    FORMAT(AVG(d.metascore), 2) AS avg_metascore
+                FROM
+                    Identity AS i INNER JOIN Details AS d
+                    ON i.imdb_user = d.imdb_user INNER JOIN
+                    People as p ON p.imdb_user = i.imdb_user
+                    INNER JOIN Users AS u ON i.user_id = u.user_id
+                GROUP BY
+                    i.user_id"""
+
+    cursor = db.cursor()
+    if isinstance(user_id, int):
+        cursor.execute(sql + f' HAVING user_id = {user_id}')
+    elif user_id is None:
+        cursor.execute(sql)
+    messy_data = cursor.fetchall()
+    organized_data = {
+        'user_id' : [record[0] for record in messy_data],
+        'username' : [record[1] for record in messy_data],
+        'email' : [record[2] for record in messy_data],
+        'quantity' : [record[3] for record in messy_data],
+        'average runtime' : [to_float(record[4]) for record in messy_data],
+        'average rating' : [to_float(record[5]) for record in messy_data],
+        'average votes' : [to_float(record[6]) for record in messy_data],
+        'quantity of genres' : [record[7] for record in messy_data],
+        'quantity of websites' : [record[8] for record in messy_data],
+        'average metascore' : [to_float(record[9]) for record in messy_data]
+    }
+    return organized_data
+
 if __name__ == '__main__':
-    pprint.pprint(get_genre_data_by_user(ddl.define_conn("root", "Ichigo007*"), 1))
+    pprint.pprint(get_all_averages(ddl.define_conn("root", "Ichigo007*"), None))
