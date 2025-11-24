@@ -1,4 +1,6 @@
 from typing import Optional, List, Any, Dict
+import os
+import DB.dql as dql
 
 def transform_number(strNum: str) -> int:
 
@@ -87,5 +89,20 @@ def transform_data_structure(ugly_dict: Dict[str, List[Any]]) -> List[Dict[str, 
         DATA.append(my_row)
     return DATA
     
+def JSON_auto_dir_for_user(db: Any, userID: int) -> None:
+
+    user_data: Dict[str, str] = dql.get_user_data(db, userID)
+    if not os.path.exists('DATA_HERE'):
+        os.mkdir('DATA_HERE')
+        os.mkdir('DATA_HERE/JSON_files')
+        os.mkdir(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}')
+    else:
+        if not os.path.exists('DATA_HERE/JSON_files'):
+            os.mkdir('DATA_HERE/JSON_files')
+            os.mkdir(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}')
+        else:
+            if not os.path.exists(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}'):
+                os.mkdir(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}')
+
 if __name__ == '__main__':
     print(transform_data_structure({'A': [1, 2, 3], 'B' : [0, 1, 2], 'C': ['A', 'B', 'C']}))
