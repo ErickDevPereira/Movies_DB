@@ -70,8 +70,7 @@ def read_and_load(title: str) -> Tuple[Movie, str, str]:
 def export_JSON_for_regular_user(db: Any, userID: int, mode: str = 'together') -> int:
 
     if mode not in ('together', 'separate'):
-        raise ERROR.NotAnOption('''wrong option for parameter mode at function export_JSON_for_regular_user. 
-                                The possible values are: "together" and "separate"''')
+        raise ERROR.NotAnOption(mode, 'separate', 'together')
 
     all_data = dql.get_everything_by_user(db, userID)
     rating_stats_over_avg_by_user = dql.get_rating_stats_over_avg_by_user(db, userID)
@@ -95,7 +94,7 @@ def export_JSON_for_regular_user(db: Any, userID: int, mode: str = 'together') -
         }
 
         try:
-            utils.JSON_auto_dir_for_user(db, userID)
+            utils.auto_dir(db, userID)
             JSON_txt: str = json.dumps(DATA, indent = 3)
             f: Any = open(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}/data_{user_data['Nickname']}.json', 'w')
             f.write(JSON_txt)
@@ -106,7 +105,7 @@ def export_JSON_for_regular_user(db: Any, userID: int, mode: str = 'together') -
             return 0 #0 means that a failure occurred during the operation
     elif mode == 'separate':
         try:
-            utils.JSON_auto_dir_for_user(db, userID)
+            utils.auto_dir(db, userID)
             JSON_matrix: np.ndarray = np.array([np.array([f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}/JSON_{user_data['Nickname']}_Movies_registered_by_user.json',
                                             json.dumps(utils.transform_data_structure(all_data), indent = 2)]),
                                             np.array([f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}/JSON_{user_data['Nickname']}_Movies_over_average_rating.json',
@@ -147,5 +146,79 @@ def export_JSON_for_admin(db: Any, admin_id: int) -> int:
         return 1
 
 
+def export_CSV_for_admin(db: Any, admin_id: int) -> int:
+
+    try:
+        DATA = dql.get_all_averages(db)
+        utils.auto_dir(db, admin_id, format = 'CSV')
+        Nickname = dql.get_user_data(db, admin_id)['Nickname']
+        df = pd.DataFrame(DATA)
+        df.to_csv(f'DATA_HERE/CSV_files/CSV_{Nickname}/ALL_DATA_FOR_ADMIN.csv', index = False)
+    except Exception as err:
+        print(err)
+        return 0
+    else:
+        return 1
+
+def clean_Movies_dataframe(Movies_df: Any) -> Any:
+
+    semi_treated_df: Any = Movies_df.fillna({'genre': 'Genre Not defined',
+                      'description': "Not available",
+                      'runtime' : 0,
+                      'director': "Not available",
+                      'actors': "Not available",
+                      'writer': "Not available",
+                      'release date': "Not available",
+                      'imdb rating': 0.0,
+                      'metascore': 0,
+                      'language': "Not available",
+                      'country': "Undefined",
+                      'imdb votes': 0,
+                      'Website': "Not available",
+                      'awards': "Not defined"}, inplace = False)
+    indexes = semi_treated_df.index
+
+    for index in indexes:
+        if semi_treated_df.loc[index, 'runtime'] <= 20:
+            semi_treated_df.loc[index, 'runtime'] = 0
+        if semi_treated_df.loc[index, 'metascore'] < 0:
+            semi_treated_df.loc[index, 'runtime'] = 0
+        if semi_treated_df.loc[index, 'imdb votes'] < 0:
+            semi_treated_df.loc[index, 'imdb votes'] = 0
+        if semi_treated_df.loc[index, 'imdb rating'] < 0 or semi_treated_df.loc[index, 'imdb rating'] > 10:
+            semi_treated_df.loc[index, 'imdb rating'] = 0
+    return semi_treated_df
+
+def export_CSV_for_regular_user(db: Any, user_id: int) -> int:
+
+    all_data = dql.get_everything_by_user(db, user_id)
+    rating_stats_over_avg_by_user = dql.get_rating_stats_over_avg_by_user(db, user_id)
+    movies_over_avg_rating_by_user = dql.get_rating_data_over_avg_by_user(db, user_id)
+    genre_data_by_user = dql.get_genre_data_by_user(db, user_id)
+    year_data_by_user = dql.get_year_data_by_user(db, user_id)
+    country_data_by_user = dql.get_country_data_by_user(db, user_id)
+    overall_stats_by_user = dql.get_all_averages(db, user_id)
+    user_data = dql.get_user_data(db, user_id)
+    nickname = user_data['Nickname']
+    utils.auto_dir(db, user_id, format = 'CSV')
+    START: str = f'DATA_HERE/CSV_FILES/CSV_{nickname}/'
+
+    CSV_matrix: List[List[Any]] = [[START + f'CSV_{nickname}_Data_by_country.csv', pd.DataFrame(country_data_by_user)],
+                                    [START + f'CSV_{nickname}_Data_by_genre.csv', pd.DataFrame(genre_data_by_user)],
+                                    [START + f'CSV_{nickname}_Data_by_year.csv', pd.DataFrame(year_data_by_user)],
+                                    [START + f'CSV_{nickname}_Movies_registered_by_user.csv', clean_Movies_dataframe(pd.DataFrame(all_data))],
+                                    [START + f'CSV_{nickname}_Statistics_concerning_all_registered_movies_by_user.csv', pd.DataFrame(overall_stats_by_user)],
+                                    [START + f'CSV_{nickname}_Movies_over_average_rating.csv', pd.DataFrame(movies_over_avg_rating_by_user)],
+                                    [START + f'CSV_{nickname}_Statistics_of_movies_over_average.csv', pd.DataFrame(rating_stats_over_avg_by_user)]]
+
+    try:
+        for CSV in CSV_matrix:
+            CSV[1].to_csv(CSV[0], index = False)
+    except Exception as err:
+        print(err)
+        return 0
+    else:
+        return 1
+
 if __name__ == '__main__':
-    print(export_JSON_for_admin(ddl.define_conn('root', 'Ichigo007*'), 2))
+    print(export_CSV_for_regular_user(ddl.define_conn('root', 'Ichigo007*'), 1))
