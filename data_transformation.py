@@ -64,6 +64,21 @@ def read_and_load(title: str) -> Tuple[Movie, str, str]:
             return Movie(), api_runtime, data
     else:
         return Movie(), api_runtime, 'ERROR'
+    
+def JSON_auto_dir_for_user(db: Any, userID: int) -> None:
+
+    user_data: Dict[str, str] = dql.get_user_data(db, userID)
+    if not os.path.exists('DATA_HERE'):
+        os.mkdir('DATA_HERE')
+        os.mkdir('DATA_HERE/JSON_files')
+        os.mkdir(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}')
+    else:
+        if not os.path.exists('DATA_HERE/JSON_files'):
+            os.mkdir('DATA_HERE/JSON_files')
+            os.mkdir(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}')
+        else:
+            if not os.path.exists(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}'):
+                os.mkdir(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}')
 
 def export_single_JSON_for_regular_user(db: Any, userID: int) -> int:
 
@@ -88,14 +103,9 @@ def export_single_JSON_for_regular_user(db: Any, userID: int) -> int:
     }
 
     try:
-        if not os.path.exists('DATA_HERE'):
-            os.mkdir('DATA_HERE')
-            os.mkdir('DATA_HERE/JSON_files')
-        else:
-            if not os.path.exists('DATA_HERE/JSON_files'):
-                os.mkdir('DATA_HERE/JSON_files')
+        JSON_auto_dir_for_user(db, userID)
         JSON_txt = json.dumps(DATA, indent = 3)
-        f = open(f'DATA_HERE/JSON_files/data_{user_data['Nickname']}.json', 'w')
+        f = open(f'DATA_HERE/JSON_files/JSON_{user_data['Nickname']}/data_{user_data['Nickname']}.json', 'w')
         f.write(JSON_txt)
         f.close()
         return 1 #1 means that the operation happened with success
